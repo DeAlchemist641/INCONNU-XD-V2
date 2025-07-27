@@ -1,5 +1,4 @@
-
-name: Node.js CI
+name: Node.js CI Scheduled Deploy
 
 on:
   push:
@@ -9,11 +8,15 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 */6 * * *'  
+    - cron: '0 */6 * * *'   # Every 6 hours UTC
+  workflow_dispatch:         # Optional manual trigger
+
+concurrency:
+  group: deploy-workflow
+  cancel-in-progress: true   # Cancel any previous in-progress run of this group
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -32,13 +35,12 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Install FFmpeg
-      run: sudo apt-get install -y ffmpeg
-
-    - name: Start application with timeout
+    - name: Install ffmpeg
       run: |
-        timeout 21590s npm start  # Limite l'exécution à 5h 59m 50s
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
 
-    - name: Save state (Optional)
+    - name: Start application
       run: |
-        ./save_state.sh
+        echo "Starting app for scheduled run..."
+        npm start
